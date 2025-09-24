@@ -1,0 +1,86 @@
+TaxonAttributeTable = 
+CALCULATETABLE(
+    ADDCOLUMNS(
+        TaxonIDTable,
+        "Height From", LOOKUPVALUE(TaxonGardening[HeightFrom], TaxonGardening[TaxonID], [TaxonID]),
+        "Height To", LOOKUPVALUE(TaxonGardening[HeightTo], TaxonGardening[TaxonID], [TaxonID]),
+        "Bloom Color", LOOKUPVALUE(TaxonGardening[ColorsText], TaxonGardening[TaxonID], [TaxonID]),
+        "Spread From", LOOKUPVALUE(TaxonGardening[SpreadFrom], TaxonGardening[TaxonID], [TaxonID]),
+        "Spread To", LOOKUPVALUE(TaxonGardening[SpreadTo], TaxonGardening[TaxonID], [TaxonID]),
+        "Provenance",
+            VAR CurrentTaxon = [Taxon]
+            Var AccessionNum = 
+                MAXX(
+                    FILTER(TCLSPlants, TCLSPlants[Taxon] = CurrentTaxon),
+                    TCLSPlants[Accession]
+                )
+            VAR AccessionProvenanceID = 
+                LOOKUPVALUE(
+                    Accession[ProvenanceID],
+                    Accession[ReadonlyAccessionNumber],
+                    AccessionNum
+                )
+            RETURN
+                IF(
+                    NOT(ISBLANK(AccessionProvenanceID)),
+                    LOOKUPVALUE(
+                        Provenance[Name],
+                        Provenance[ProvenanceID],
+                        AccessionProvenanceID
+                    ),
+                    BLANK()           
+                ),
+        "Light Requirement",
+            VAR CurrentTaxonID = [TaxonID]
+            VAR LightCareValueID = 
+                LOOKUPVALUE(
+                    TaxonCareValue[CareValueID],
+                    TaxonCareValue[TaxonID], CurrentTaxonID,
+                    TaxonCareValue[CareKindID], VALUE("1")
+                )
+            RETURN
+                IF(
+                    NOT(ISBLANK(LightCareValueID)),
+                    LOOKUPVALUE(
+                        CareValue[Name],
+                        CareValue[CareValueID], LightCareValueID,
+                        CareValue[CareKindID], VALUE("1")
+                    ),
+                    BLANK()
+                ),
+        "Moisture Requirement",
+            VAR CurrentTaxonID = [TaxonID]
+            VAR MoistureCareValueID =
+                LOOKUPVALUE(
+                    TaxonCareValue[CareValueID],
+                    TaxonCareValue[TaxonID], CurrentTaxonID,
+                    TaxonCareValue[CareKindID], VALUE("2")
+                )
+            RETURN
+                IF(
+                    NOT(ISBLANK(MoistureCareValueID)),
+                    LOOKUPVALUE(
+                        CareValue[Name],
+                        CareValue[CareValueID], MoistureCareValueID,
+                        CareValue[CareKindID], VALUE("2")
+                    ),
+                    BLANK()
+                ),
+        "Bloom Start Month",
+            VAR BloomStartID = LOOKUPVALUE(TaxonGardening[BloomTimeBeginID], TaxonGardening[TaxonID], [TaxonID])
+            RETURN
+                IF(
+                    NOT(ISBLANK(BloomStartID)),
+                    LOOKUPVALUE(BloomTime[BloomTimeName], BloomTime[BloomTimeID], BloomStartID),
+                    BLANK()
+                ),
+        "Bloom End Month",
+            VAR BloomEndID = LOOKUPVALUE(TaxonGardening[BloomTimeEndID], TaxonGardening[TaxonID], [TaxonID])
+            RETURN
+                IF(
+                    NOT(ISBLANK(BloomEndID)),
+                    LOOKUPVALUE(BloomTime[BloomTimeName], BloomTime[BloomTimeID], BloomEndID),
+                    BLANK()
+                )   
+    )                    
+) 
