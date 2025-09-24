@@ -1,0 +1,25 @@
+LightRequirementTable = 
+CALCULATETABLE(
+    ADDCOLUMNS(
+        TaxonIDTable,
+        "Taxon Name", [Taxon],
+        "Light Requirement",
+            VAR CurrentTaxonID = [TaxonID]
+            VAR LightCareValueID = 
+                LOOKUPVALUE(
+                    TaxonCareValue[CareValueID],
+                    TaxonCareValue[TaxonID], CurrentTaxonID,
+                    TaxonCareValue[CareKindID], VALUE("1")  // Convert "1" to a number
+                )
+            RETURN
+                IF(
+                    NOT(ISBLANK(LightCareValueID)),
+                    LOOKUPVALUE(
+                        CareValue[Name],
+                        CareValue[CareValueID], LightCareValueID,
+                        CareValue[CareKindID], VALUE("1")  // Convert "1" to a number
+                    ),
+                    BLANK()
+                )
+    )
+)
